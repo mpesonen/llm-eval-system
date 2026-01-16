@@ -24,7 +24,7 @@ cases:
     category: structured-output
     prompt: |
       Return a JSON object with keys "name" and "age" for a person named Alice who is 30.
-      Return only valid JSON, no other text.
+      Return only the raw JSON object. Do not use markdown code fences or any other formatting.
     expected:
       valid_json: true
       json_has_keys:

@@ -1,6 +1,9 @@
+import argparse
+
 from dotenv import load_dotenv
 
 from src.clients.openai import OpenAIClient
+from src.runner.loader import load_suite
 from src.runner.runner import Runner
 from src.scorers.rules import RuleScorer
 from src.store.local import LocalStore
@@ -24,20 +27,23 @@ def print_run(run):
 
 
 def main():
-    models = ["gpt-4o-mini", "gpt-4o"]
+    parser = argparse.ArgumentParser(description="Run LLM evaluation suites")
+    parser.add_argument(
+        "-s", "--suite", required=True, help="Path to YAML suite file"
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        action="append",
+        default=[],
+        help="Model to evaluate (can be repeated)",
+    )
+    args = parser.parse_args()
+
+    models = args.model if args.model else ["gpt-4o-mini"]
+    suite = load_suite(args.suite)
     scorer = RuleScorer()
     store = LocalStore()
-
-    suite = {
-        "id": "quick-test",
-        "cases": [
-            {
-                "id": "math",
-                "prompt": "What is 2 + 2? Answer with just the number.",
-                "expected": {"contains": "4", "max_length": 10},
-            },
-        ],
-    }
 
     for model in models:
         client = OpenAIClient(model=model)
