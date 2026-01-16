@@ -1,46 +1,42 @@
 from dotenv import load_dotenv
-from langsmith import traceable, wrappers
-from openai import OpenAI
+
+from src.clients.openai import OpenAIClient
+from src.runner.runner import Runner
+from src.scorers.rules import RuleScorer
 
 load_dotenv()
 
-client = wrappers.wrap_openai(OpenAI())
-
-
-@traceable
-def generate(prompt: str, model: str = "gpt-4o-mini") -> dict:
-    """
-    Run a single eval-style generation.
-
-    Returns a dict with the prompt, response, and metadata for evaluation.
-    """
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    response = completion.choices[0].message.content
-
-    return {
-        "prompt": prompt,
-        "response": response,
-        "model": model,
-        "usage": {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        },
-        "finish_reason": completion.choices[0].finish_reason,
-    }
-
 
 def main():
-    result = generate("What is 2 + 2? Answer with just the number.")
+    client = OpenAIClient()
+    scorer = RuleScorer()
+    runner = Runner(client=client, scorer=scorer)
 
-    print(f"Prompt: {result['prompt']}")
-    print(f"Response: {result['response']}")
-    print(f"Model: {result['model']}")
-    print(f"Tokens: {result['usage']['total_tokens']}")
+    suite = {
+        "id": "quick-test",
+        "cases": [
+            {
+                "id": "math",
+                "prompt": "What is 2 + 2? Answer with just the number.",
+                "expected": {"contains": "4", "max_length": 10},
+            },
+        ],
+    }
+
+    run = runner.run(suite)
+
+    print(f"Suite: {run.suite_id}")
+    print(f"Model: {run.model}")
+    print(f"Results: {len(run.results)} case(s)")
+    print()
+
+    for result in run.results:
+        status = "PASS" if result.passed else "FAIL"
+        print(f"[{status}] {result.case_id}")
+        print(f"  Prompt: {result.prompt}")
+        print(f"  Response: {result.response}")
+        if result.reasons:
+            print(f"  Reasons: {result.reasons}")
 
 
 if __name__ == "__main__":
