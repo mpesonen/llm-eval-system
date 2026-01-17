@@ -1,6 +1,7 @@
 import { useMemo, useRef, useEffect, useState } from "react";
 import { SuiteChart, type ChartDataPoint, type DataPointStatus, THRESHOLDS } from "./SuiteChart";
 import { FailuresPanel } from "./FailuresPanel";
+import { API_BASE_URL } from "../config";
 
 interface Run {
   id: string;
@@ -60,7 +61,7 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
   useEffect(() => {
     if (expanded && !details && !loadingDetails) {
       setLoadingDetails(true);
-      fetch(`http://localhost:8000/api/suites/${suiteId}`)
+      fetch(`${API_BASE_URL}/api/suites/${suiteId}`)
         .then((res) => res.ok ? res.json() : null)
         .then((data) => {
           if (data) {

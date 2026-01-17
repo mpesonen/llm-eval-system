@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import "./App.css";
 import { SuiteCard } from "./components/SuiteCard";
 import { RunDetail } from "./components/RunDetail";
+import { API_BASE_URL } from "./config";
 
 interface Run {
   id: string;
@@ -22,7 +23,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/runs")
+    fetch(`${API_BASE_URL}/api/runs`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch runs");
         return res.json();
@@ -72,7 +73,7 @@ function App() {
     let cancelled = false;
     Promise.all(
       suiteIds.map((id) =>
-        fetch(`http://localhost:8000/api/suites/${id}`)
+        fetch(`${API_BASE_URL}/api/suites/${id}`)
           .then((res) =>
             res.ok ? res.json() : { id, title: id, description: null }
           )

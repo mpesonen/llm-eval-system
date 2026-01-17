@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config";
 
 interface FailureCase {
   id: string;
@@ -36,7 +37,7 @@ export function FailuresPanel({ runId, onClose }: FailuresPanelProps) {
     setLoading(true);
     setError(null);
 
-    fetch(`http://localhost:8000/api/runs/${runId}`)
+    fetch(`${API_BASE_URL}/api/runs/${runId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch run details");
         return res.json();

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config";
 
 interface Result {
   id: string;
@@ -29,7 +30,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/runs/${runId}`)
+    fetch(`${API_BASE_URL}/api/runs/${runId}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch run");
         return res.json();

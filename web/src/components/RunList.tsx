@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config";
 
 interface Run {
   id: string;
@@ -19,7 +20,7 @@ export function RunList({ onSelectRun }: RunListProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/runs")
+    fetch(`${API_BASE_URL}/api/runs`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch runs");
         return res.json();
