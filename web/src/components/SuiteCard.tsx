@@ -74,28 +74,61 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
     }
   }, [expanded, details, loadingDetails, suiteId]);
 
-  // Calculate statistics
+  // Calculate statistics including delta status
   const stats = useMemo(() => {
     if (runs.length === 0) {
       return {
         totalRuns: 0,
         averagePassRate: 0,
         latestPassRate: null as number | null,
+        delta: null as number | null,
+        deltaStatus: null as 'improvement' | 'regression' | 'no_change' | null,
       };
     }
+
+    // Sort by revision (newest first already from API, but let's be explicit)
+    const sortedByRevision = runs.slice().sort((a, b) => {
+      if (a.revision != null && b.revision != null) {
+        return b.revision - a.revision; // Newest first
+      }
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
 
     const passRates = runs.map(
       (run) => (run.passed / run.total) * 100
     );
     const averagePassRate =
       passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length;
-    // API returns runs sorted newest first, so latest is the first one
-    const latestPassRate = passRates[0];
+    
+    // Latest and previous based on revision
+    const latestRun = sortedByRevision[0];
+    const previousRun = sortedByRevision[1];
+    const latestPassRate = (latestRun.passed / latestRun.total) * 100;
+    
+    let delta: number | null = null;
+    let deltaStatus: 'improvement' | 'regression' | 'no_change' | null = null;
+    
+    if (previousRun) {
+      const previousPassRate = (previousRun.passed / previousRun.total) * 100;
+      delta = latestPassRate - previousPassRate;
+      
+      if (delta >= THRESHOLDS.improvement) {
+        deltaStatus = 'improvement';
+      } else if (delta <= THRESHOLDS.majorRegression) {
+        deltaStatus = 'regression';
+      } else if (delta <= THRESHOLDS.minorRegression) {
+        deltaStatus = 'regression';
+      } else {
+        deltaStatus = 'no_change';
+      }
+    }
 
     return {
       totalRuns: runs.length,
       averagePassRate,
       latestPassRate,
+      delta,
+      deltaStatus,
     };
   }, [runs]);
 
@@ -231,6 +264,26 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
             {stats.latestPassRate !== null
               ? `${stats.latestPassRate.toFixed(1)}%`
               : "N/A"}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">Change</div>
+          <div className="stat-value">
+            {stats.deltaStatus === null ? (
+              <span className="delta-badge delta-na">—</span>
+            ) : stats.deltaStatus === 'improvement' ? (
+              <span className="delta-badge delta-improvement">
+                ↑ IMPROVED
+              </span>
+            ) : stats.deltaStatus === 'regression' ? (
+              <span className="delta-badge delta-regression">
+                ↓ REGRESSION
+              </span>
+            ) : (
+              <span className="delta-badge delta-no-change">
+                → NO CHANGE
+              </span>
+            )}
           </div>
         </div>
       </div>

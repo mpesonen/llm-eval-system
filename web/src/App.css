@@ -255,9 +255,15 @@ h1 {
 /* Stats */
 .suite-card-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .suite-card-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .stat {
@@ -274,6 +280,37 @@ h1 {
   font-size: 1.5rem;
   font-weight: 600;
   color: #1f2937;
+}
+
+/* Delta badges */
+.delta-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.delta-improvement {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.delta-regression {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.delta-no-change {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.delta-na {
+  background: transparent;
+  color: #9ca3af;
+  font-size: 1.5rem;
 }
 
 /* Chart */
