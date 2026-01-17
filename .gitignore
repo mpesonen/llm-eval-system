@@ -1,6 +1,7 @@
 # Environment
 .env
-.venv
+.venv/
+venv/
 
 # Eval runs (local storage)
 .eval_runs/
@@ -10,20 +11,28 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # OS
 .DS_Store
+Thumbs.db
 
-# IDE
+# IDE / Editor
 .idea/
-*.swp
 .vscode/
+*.swp
+*.swo
+*~
+
+# Cursor
+.cursor/
 
 # Frontend
 web/node_modules/
-web/dist/
 
-# Claude
-.claude/
+# AI assistant context files
 CLAUDE.md
 **/CLAUDE.md
