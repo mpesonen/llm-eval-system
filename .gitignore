@@ -17,3 +17,12 @@ dist/
 # IDE
 .idea/
 *.swp
+
+# Frontend
+web/node_modules/
+web/dist/
+
+# Claude
+.claude/
+CLAUDE.md
+**/CLAUDE.md
