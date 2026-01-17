@@ -1,5 +1,6 @@
 import { useMemo, useRef, useEffect, useState } from "react";
 import { SuiteChart, type ChartDataPoint, type DataPointStatus, THRESHOLDS } from "./SuiteChart";
+import { FailuresPanel } from "./FailuresPanel";
 
 interface Run {
   id: string;
@@ -40,6 +41,7 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
   const [expanded, setExpanded] = useState(false);
   const [details, setDetails] = useState<SuiteDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -163,6 +165,7 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
         : null;
 
       return {
+        runId: run.id,
         revision: run.revision ?? 0,
         timestamp: new Date(run.timestamp),
         passRate,
@@ -295,9 +298,18 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
             width={chartWidth}
             height={200}
             margin={{ top: 20, right: 20, bottom: 40, left: 50 }}
+            onPointClick={(runId) => setSelectedRunId(runId)}
           />
         )}
       </div>
+
+      {/* Failures Panel */}
+      {selectedRunId && (
+        <FailuresPanel
+          runId={selectedRunId}
+          onClose={() => setSelectedRunId(null)}
+        />
+      )}
     </div>
   );
 }

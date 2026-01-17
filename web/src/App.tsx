@@ -113,6 +113,11 @@ function App() {
   return (
     <div className="app">
       <h1>LLM Eval Dashboard</h1>
+      <p className="demo-description">
+        A lightweight evaluation framework for testing LLM behavior across prompt versions,
+        models, and system configurations. Track regressions, compare runs, and validate
+        responses using rule-based checks or LLM-as-judge scoring.
+      </p>
 
       <div className="dashboard-grid">
         {suites.map((suite) => (

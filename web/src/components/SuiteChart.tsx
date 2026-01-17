@@ -10,6 +10,7 @@ import { useTooltip, TooltipWithBounds, defaultStyles } from "@visx/tooltip";
 export type DataPointStatus = 'improvement' | 'minor_regression' | 'major_regression' | 'neutral';
 
 export interface ChartDataPoint {
+  runId: string;
   revision: number;
   timestamp: Date;
   passRate: number; // 0-100
@@ -51,6 +52,7 @@ interface SuiteChartProps {
   width: number;
   height: number;
   margin?: { top: number; right: number; bottom: number; left: number };
+  onPointClick?: (runId: string) => void;
 }
 
 export function SuiteChart({
@@ -58,6 +60,7 @@ export function SuiteChart({
   width,
   height,
   margin = { top: 20, right: 20, bottom: 40, left: 50 },
+  onPointClick,
 }: SuiteChartProps) {
   const {
     tooltipOpen,
@@ -185,6 +188,7 @@ export function SuiteChart({
                 });
               }}
               onMouseLeave={() => hideTooltip()}
+              onClick={() => onPointClick?.(d.runId)}
             />
           ))}
 
