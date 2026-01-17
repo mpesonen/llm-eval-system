@@ -8,15 +8,18 @@ interface Run {
   timestamp: string;
   passed: number;
   total: number;
+  system_prompt_name?: string | null;
+  system_prompt_version?: string | null;
 }
 
 interface SuiteCardProps {
   suiteId: string;
-  suiteName: string;
+  title: string;
+  description?: string | null;
   runs: Run[];
 }
 
-export function SuiteCard({ suiteName, runs }: SuiteCardProps) {
+export function SuiteCard({ title, description, runs }: SuiteCardProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(400);
 
@@ -66,13 +69,17 @@ export function SuiteCard({ suiteName, runs }: SuiteCardProps) {
       .map((run) => ({
         timestamp: new Date(run.timestamp),
         passRate: (run.passed / run.total) * 100,
+        model: run.model,
+        systemPromptName: run.system_prompt_name,
+        systemPromptVersion: run.system_prompt_version,
       }));
   }, [runs]);
 
   return (
     <div className="suite-card">
       <div className="suite-card-header">
-        <h3>{suiteName}</h3>
+        <h3>{title}</h3>
+        {description && <p className="suite-card-description">{description}</p>}
       </div>
 
       <div className="suite-card-stats">

@@ -47,8 +47,44 @@ function App() {
     });
     const suiteIds = Object.keys(grouped).sort();
     return {
-      suites: suiteIds.map((id) => ({ id, name: id })),
+      suites: suiteIds.map((id) => ({ id })),
       runsBySuite: grouped,
+    };
+  }, [runs]);
+
+  // Fetch suite metadata (title, description) for each suite
+  const [suiteMetadata, setSuiteMetadata] = useState<
+    Record<string, { id: string; title?: string; description?: string | null }>
+  >({});
+
+  useEffect(() => {
+    const suiteIds = [...new Set(runs.map((r) => r.suite_id))];
+    if (suiteIds.length === 0) {
+      setSuiteMetadata({});
+      return;
+    }
+    let cancelled = false;
+    Promise.all(
+      suiteIds.map((id) =>
+        fetch(`http://localhost:8000/api/suites/${id}`)
+          .then((res) =>
+            res.ok ? res.json() : { id, title: id, description: null }
+          )
+          .catch(() => ({ id, title: id, description: null }))
+      )
+    ).then((results) => {
+      if (cancelled) return;
+      const meta: Record<
+        string,
+        { id: string; title?: string; description?: string | null }
+      > = {};
+      results.forEach((s) => {
+        meta[s.id] = s;
+      });
+      setSuiteMetadata(meta);
+    });
+    return () => {
+      cancelled = true;
     };
   }, [runs]);
 
@@ -77,7 +113,8 @@ function App() {
           <SuiteCard
             key={suite.id}
             suiteId={suite.id}
-            suiteName={suite.name}
+            title={suiteMetadata[suite.id]?.title ?? suite.id}
+            description={suiteMetadata[suite.id]?.description ?? undefined}
             runs={runsBySuite[suite.id] || []}
           />
         ))}

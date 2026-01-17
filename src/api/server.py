@@ -1,8 +1,11 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.prompts import list_prompts, list_versions
 from src.runner.compare import compare_runs
+from src.runner.loader import load_suite
 from src.store.local import LocalStore
 
 app = FastAPI(title="LLM Eval API")
@@ -116,3 +119,28 @@ def get_system_prompts():
         }
     
     return result
+
+
+def _get_suites_dir() -> Path:
+    """Get the datasets/examples directory path."""
+    return Path(__file__).resolve().parent.parent.parent / "datasets" / "examples"
+
+
+@app.get("/api/suites/{suite_id}")
+def get_suite(suite_id: str):
+    """Return suite metadata (id, title, description) from the suite YAML file."""
+    if ".." in suite_id or "/" in suite_id or "\\" in suite_id:
+        raise HTTPException(status_code=400, detail="Invalid suite_id")
+    suites_dir = _get_suites_dir()
+    suite_path = suites_dir / f"{suite_id}.yaml"
+    if not suite_path.exists():
+        raise HTTPException(status_code=404, detail="Suite not found")
+    try:
+        suite = load_suite(str(suite_path))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to load suite")
+    return {
+        "id": suite.get("id", suite_id),
+        "title": suite.get("title") or suite.get("id", suite_id),
+        "description": suite.get("description"),
+    }

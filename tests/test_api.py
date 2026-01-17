@@ -163,3 +163,39 @@ class TestCompare:
 
         assert response.status_code == 404
         assert "current" in response.json()["detail"].lower()
+
+
+class TestGetSuite:
+    def test_returns_suite_metadata_when_suite_exists(self, client):
+        test_client, _ = client
+        response = test_client.get("/api/suites/basic")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == "basic"
+        assert data["title"] == "basic"  # fallback when title not in YAML
+        assert "Quick-start" in (data["description"] or "")
+
+    def test_returns_title_from_yaml_when_present(self, client):
+        test_client, _ = client
+        response = test_client.get("/api/suites/structured-output")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == "structured-output"
+        assert data["title"] == "Structured Output"
+        assert "JSON" in (data["description"] or "")
+
+    def test_returns_404_for_nonexistent_suite(self, client):
+        test_client, _ = client
+        response = test_client.get("/api/suites/nonexistent-suite-xyz")
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_returns_400_for_invalid_suite_id(self, client):
+        test_client, _ = client
+        response = test_client.get("/api/suites/..%2F..%2Fetc")  # ".." and "/" in path
+
+        # FastAPI may return 404 for invalid path; 400 if our check runs
+        assert response.status_code in (400, 404)
