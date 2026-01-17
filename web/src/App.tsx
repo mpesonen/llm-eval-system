@@ -58,9 +58,9 @@ function App() {
     };
   }, [runs]);
 
-  // Fetch suite metadata (title, description) for each suite
+  // Fetch suite metadata (title, description, scorer) for each suite
   const [suiteMetadata, setSuiteMetadata] = useState<
-    Record<string, { id: string; title?: string; description?: string | null }>
+    Record<string, { id: string; title?: string; description?: string | null; scorer?: string }>
   >({});
 
   useEffect(() => {
@@ -82,7 +82,7 @@ function App() {
       if (cancelled) return;
       const meta: Record<
         string,
-        { id: string; title?: string; description?: string | null }
+        { id: string; title?: string; description?: string | null; scorer?: string }
       > = {};
       results.forEach((s) => {
         meta[s.id] = s;
@@ -121,6 +121,7 @@ function App() {
             suiteId={suite.id}
             title={suiteMetadata[suite.id]?.title ?? suite.id}
             description={suiteMetadata[suite.id]?.description ?? undefined}
+            scorer={suiteMetadata[suite.id]?.scorer}
             runs={runsBySuite[suite.id] || []}
             featured={suite.featured}
           />

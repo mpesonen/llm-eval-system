@@ -13,17 +13,33 @@ interface Run {
   git_commit_hash?: string | null;
 }
 
+interface TestCase {
+  id: string;
+  prompt: string;
+  expected: Record<string, unknown>;
+}
+
+interface SuiteDetails {
+  scorer: string;
+  llm_criteria?: string | null;
+  cases: TestCase[];
+}
+
 interface SuiteCardProps {
   suiteId: string;
   title: string;
   description?: string | null;
+  scorer?: string;
   runs: Run[];
   featured?: boolean;
 }
 
-export function SuiteCard({ title, description, runs, featured }: SuiteCardProps) {
+export function SuiteCard({ suiteId, title, description, scorer, runs, featured }: SuiteCardProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(400);
+  const [expanded, setExpanded] = useState(false);
+  const [details, setDetails] = useState<SuiteDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -37,6 +53,26 @@ export function SuiteCard({ title, description, runs, featured }: SuiteCardProps
     window.addEventListener("resize", updateWidth);
     return () => window.removeEventListener("resize", updateWidth);
   }, []);
+
+  // Fetch details when expanded
+  useEffect(() => {
+    if (expanded && !details && !loadingDetails) {
+      setLoadingDetails(true);
+      fetch(`http://localhost:8000/api/suites/${suiteId}`)
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          if (data) {
+            setDetails({
+              scorer: data.scorer || "rules",
+              llm_criteria: data.llm_criteria,
+              cases: data.cases || [],
+            });
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingDetails(false));
+    }
+  }, [expanded, details, loadingDetails, suiteId]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -106,12 +142,75 @@ export function SuiteCard({ title, description, runs, featured }: SuiteCardProps
     });
   }, [runs]);
 
+  const formatExpected = (expected: Record<string, unknown>): string => {
+    if (Object.keys(expected).length === 0) return "—";
+    return Object.entries(expected)
+      .map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}: [${value.join(", ")}]`;
+        }
+        return `${key}: ${value}`;
+      })
+      .join(", ");
+  };
+
   return (
     <div className={`suite-card${featured ? " suite-card-featured" : ""}`}>
-      <div className="suite-card-header">
-        <h3>{title}</h3>
-        {description && <p className="suite-card-description">{description}</p>}
+      <div 
+        className="suite-card-header suite-card-header-clickable"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="suite-card-header-content">
+          <div className="suite-card-title-row">
+            <h3>{title}</h3>
+            {scorer && (
+              <span className={`scorer-badge scorer-${scorer}`}>
+                {scorer === "llm" ? "LLM Judge" : "Rule-based"}
+              </span>
+            )}
+          </div>
+          {description && <p className="suite-card-description">{description}</p>}
+        </div>
+        <span className={`suite-card-chevron ${expanded ? "expanded" : ""}`}>
+          ▼
+        </span>
       </div>
+
+      {expanded && (
+        <div className="suite-card-details">
+          {loadingDetails ? (
+            <div className="suite-card-loading">Loading details...</div>
+          ) : details ? (
+            <>
+              {details.llm_criteria && (
+                <div className="suite-card-criteria">
+                  <div className="criteria-label">LLM Criteria:</div>
+                  <pre className="criteria-content">{details.llm_criteria}</pre>
+                </div>
+              )}
+
+              <div className="suite-card-cases">
+                <div className="cases-label">Test Cases ({details.cases.length}):</div>
+                <ul className="cases-list">
+                  {details.cases.map((testCase) => (
+                    <li key={testCase.id} className="case-item">
+                      <div className="case-id">{testCase.id}</div>
+                      <div className="case-prompt">{testCase.prompt}</div>
+                      {details.scorer === "rules" && Object.keys(testCase.expected).length > 0 && (
+                        <div className="case-expected">
+                          Expected: {formatExpected(testCase.expected)}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          ) : (
+            <div className="suite-card-error">Failed to load details</div>
+          )}
+        </div>
+      )}
 
       <div className="suite-card-stats">
         <div className="stat">
@@ -149,4 +248,3 @@ export function SuiteCard({ title, description, runs, featured }: SuiteCardProps
     </div>
   );
 }
-

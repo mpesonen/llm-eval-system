@@ -119,7 +119,7 @@ def _get_suites_dir() -> Path:
 
 @app.get("/api/suites/{suite_id}")
 def get_suite(suite_id: str):
-    """Return suite metadata (id, title, description) from the suite YAML file."""
+    """Return suite metadata including test cases from the suite YAML file."""
     if ".." in suite_id or "/" in suite_id or "\\" in suite_id:
         raise HTTPException(status_code=400, detail="Invalid suite_id")
     suites_dir = _get_suites_dir()
@@ -134,4 +134,14 @@ def get_suite(suite_id: str):
         "id": suite.get("id", suite_id),
         "title": suite.get("title") or suite.get("id", suite_id),
         "description": suite.get("description"),
+        "scorer": suite.get("scorer", "rules"),
+        "llm_criteria": suite.get("llm_criteria"),
+        "cases": [
+            {
+                "id": case["id"],
+                "prompt": case["prompt"],
+                "expected": case.get("expected", {}),
+            }
+            for case in suite.get("cases", [])
+        ],
     }
