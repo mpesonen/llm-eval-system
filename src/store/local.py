@@ -10,8 +10,24 @@ class LocalStore:
     def __init__(self, path: str = ".eval_runs"):
         self.path = Path(path)
 
+    def _get_next_revision(self) -> int:
+        """Get the next global revision number."""
+        runs = self.list_runs()
+        if not runs:
+            return 1
+        # Find the max revision among all runs
+        max_revision = 0
+        for run in runs:
+            if run.revision is not None and run.revision > max_revision:
+                max_revision = run.revision
+        return max_revision + 1
+
     def save_run(self, run: EvalRun) -> None:
         self.path.mkdir(parents=True, exist_ok=True)
+
+        # Assign revision number if not already set
+        if run.revision is None:
+            run.revision = self._get_next_revision()
 
         data = asdict(run)
         data["timestamp"] = run.timestamp.isoformat()
@@ -72,4 +88,6 @@ class LocalStore:
             results=results,
             system_prompt_name=data.get("system_prompt_name"),
             system_prompt_version=data.get("system_prompt_version"),
+            revision=data.get("revision"),
+            git_commit_hash=data.get("git_commit_hash"),
         )

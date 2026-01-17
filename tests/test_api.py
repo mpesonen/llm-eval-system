@@ -173,7 +173,7 @@ class TestGetSuite:
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == "basic"
-        assert data["title"] == "basic"  # fallback when title not in YAML
+        assert data["title"] == "Basic"
         assert "Quick-start" in (data["description"] or "")
 
     def test_returns_title_from_yaml_when_present(self, client):

@@ -5,6 +5,7 @@ from src.clients.base import ModelClient, ModelRequest
 from src.prompts import load_prompt, load_latest_prompt, prompt_exists
 from src.scorers.base import Scorer
 from src.store.base import EvalResult, EvalRun
+from src.utils.git import get_current_commit_hash
 
 
 class Runner:
@@ -88,4 +89,5 @@ class Runner:
             results=results,
             system_prompt_name=system_prompt_name,
             system_prompt_version=resolved_version,
+            git_commit_hash=get_current_commit_hash(),
         )

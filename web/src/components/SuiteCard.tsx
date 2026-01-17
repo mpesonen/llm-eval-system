@@ -1,5 +1,5 @@
 import { useMemo, useRef, useEffect, useState } from "react";
-import { SuiteChart, type ChartDataPoint } from "./SuiteChart";
+import { SuiteChart, type ChartDataPoint, type DataPointStatus, THRESHOLDS } from "./SuiteChart";
 
 interface Run {
   id: string;
@@ -10,6 +10,8 @@ interface Run {
   total: number;
   system_prompt_name?: string | null;
   system_prompt_version?: string | null;
+  revision?: number | null;
+  git_commit_hash?: string | null;
 }
 
 interface SuiteCardProps {
@@ -62,18 +64,48 @@ export function SuiteCard({ title, description, runs, featured }: SuiteCardProps
     };
   }, [runs]);
 
-  // Prepare chart data (sorted by timestamp, oldest to newest)
+  // Prepare chart data (sorted by revision, oldest to newest) with regression/improvement status
   const chartData: ChartDataPoint[] = useMemo(() => {
-    return runs
+    const sortedRuns = runs
       .slice()
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-      .map((run) => ({
+      // Sort by revision if available, fallback to timestamp
+      .sort((a, b) => {
+        if (a.revision != null && b.revision != null) {
+          return a.revision - b.revision;
+        }
+        return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+      });
+
+    // Helper to determine status based on change
+    const getStatus = (change: number | null): DataPointStatus => {
+      if (change === null) return 'neutral'; // First run
+      if (change >= THRESHOLDS.improvement) return 'improvement';
+      if (change <= THRESHOLDS.majorRegression) return 'major_regression';
+      if (change <= THRESHOLDS.minorRegression) return 'minor_regression';
+      return 'neutral';
+    };
+
+    return sortedRuns.map((run, index) => {
+      const passRate = (run.passed / run.total) * 100;
+      const previousPassRate = index > 0 
+        ? (sortedRuns[index - 1].passed / sortedRuns[index - 1].total) * 100 
+        : null;
+      const changeFromPrevious = previousPassRate !== null 
+        ? passRate - previousPassRate 
+        : null;
+
+      return {
+        revision: run.revision ?? 0,
         timestamp: new Date(run.timestamp),
-        passRate: (run.passed / run.total) * 100,
+        passRate,
         model: run.model,
         systemPromptName: run.system_prompt_name,
         systemPromptVersion: run.system_prompt_version,
-      }));
+        gitCommitHash: run.git_commit_hash,
+        changeFromPrevious,
+        status: getStatus(changeFromPrevious),
+      };
+    });
   }, [runs]);
 
   return (

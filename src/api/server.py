@@ -34,6 +34,8 @@ def list_runs():
             "total": len(run.results),
             "system_prompt_name": run.system_prompt_name,
             "system_prompt_version": run.system_prompt_version,
+            "revision": run.revision,
+            "git_commit_hash": run.git_commit_hash,
         }
         for run in runs
     ]
@@ -52,6 +54,8 @@ def get_run(run_id: str):
         "timestamp": run.timestamp.isoformat(),
         "system_prompt_name": run.system_prompt_name,
         "system_prompt_version": run.system_prompt_version,
+        "revision": run.revision,
+        "git_commit_hash": run.git_commit_hash,
         "results": [
             {
                 "id": r.id,
