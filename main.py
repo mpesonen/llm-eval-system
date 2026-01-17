@@ -17,7 +17,7 @@ def print_run(run):
     print(f"Suite: {run.suite_id}")
     print(f"Model: {run.model}")
     if run.system_prompt_name:
-        version_str = f" (v{run.system_prompt_version})" if run.system_prompt_version else ""
+        version_str = f" ({run.system_prompt_version})" if run.system_prompt_version else ""
         print(f"System Prompt: {run.system_prompt_name}{version_str}")
     print(f"Results: {len(run.results)} case(s)")
     print()

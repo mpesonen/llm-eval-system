@@ -1,5 +1,6 @@
 """Functions to manage and query system prompts."""
 
+import glob
 import re
 from pathlib import Path
 from typing import Optional
@@ -51,7 +52,9 @@ def list_versions(prompt_name: str) -> list[str]:
     pattern = re.compile(rf"^{re.escape(prompt_name)}-v(\d+)\.txt$")
     versions = []
     
-    for file_path in prompts_dir.glob(f"{prompt_name}-v*.txt"):
+    # Escape prompt_name for glob pattern to handle special characters
+    escaped_prompt_name = glob.escape(prompt_name)
+    for file_path in prompts_dir.glob(f"{escaped_prompt_name}-v*.txt"):
         match = pattern.match(file_path.name)
         if match:
             version_num = int(match.group(1))
