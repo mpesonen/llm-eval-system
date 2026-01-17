@@ -4,7 +4,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.clients.openai import OpenAIClient
+from src.clients import get_client
 from src.runner.compare import compare_runs
 from src.runner.loader import load_suite
 from src.runner.runner import Runner
@@ -171,7 +171,7 @@ def main():
         print()
 
         for model in models:
-            client = OpenAIClient(model=model)
+            client = get_client(model)
             runner = Runner(client=client, scorer=scorer)
             run = runner.run(
                 suite,
