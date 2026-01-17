@@ -1,0 +1,31 @@
+id: instruction-following
+version: "1.0"
+description: Tests for following specific instructions accurately
+
+cases:
+  - id: addition-simple
+    category: instruction-following
+    prompt: "What is 2 + 2? Answer with just the number."
+    expected:
+      contains: "4"
+      max_length: 10
+
+  - id: format-list
+    category: instruction-following
+    prompt: "List 3 colors. Return only the items separated by commas."
+    expected:
+      contains: ","
+      max_length: 50
+
+  - id: multi-step
+    category: instruction-following
+    prompt: "Count the words in 'hello world', then multiply by 2, and return just the number."
+    expected:
+      contains: "4"
+
+  - id: max-length
+    category: instruction-following
+    prompt: "Explain quantum physics in exactly 20 words."
+    expected:
+      max_length: 150
+

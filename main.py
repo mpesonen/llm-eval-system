@@ -16,6 +16,9 @@ load_dotenv()
 def print_run(run):
     print(f"Suite: {run.suite_id}")
     print(f"Model: {run.model}")
+    if run.system_prompt_name:
+        version_str = f" (v{run.system_prompt_version})" if run.system_prompt_version else ""
+        print(f"System Prompt: {run.system_prompt_name}{version_str}")
     print(f"Results: {len(run.results)} case(s)")
     print()
 
@@ -89,6 +92,14 @@ def main():
         "-c", "--compare", nargs=2, metavar=("BASELINE", "CURRENT"),
         help="Compare two runs by ID"
     )
+    parser.add_argument(
+        "--system-prompt",
+        help="System prompt name to use (e.g., 'example')"
+    )
+    parser.add_argument(
+        "--system-prompt-version",
+        help="System prompt version (e.g., 'v1'). Defaults to latest if not specified."
+    )
     args = parser.parse_args()
 
     store = LocalStore()
@@ -126,7 +137,11 @@ def main():
     for model in models:
         client = OpenAIClient(model=model)
         runner = Runner(client=client, scorer=scorer)
-        run = runner.run(suite)
+        run = runner.run(
+            suite,
+            system_prompt_name=args.system_prompt,
+            system_prompt_version=args.system_prompt_version,
+        )
         store.save_run(run)
         print_run(run)
         print("-" * 40)

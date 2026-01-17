@@ -1,0 +1,50 @@
+id: structured-output
+version: "1.0"
+description: Tests for JSON and structured data generation
+
+cases:
+  - id: json-output
+    category: structured-output
+    prompt: |
+      Return a JSON object with keys "name" and "age" for a person named Alice who is 30.
+      Return only the raw JSON object. Do not use markdown code fences or any other formatting.
+    expected:
+      valid_json: true
+      json_has_keys:
+        - name
+        - age
+
+  - id: json-nested
+    category: structured-output
+    prompt: |
+      Return a JSON object with a "person" key containing an object with "name" and "details" keys.
+      The "details" key should contain an array with two numbers: 10 and 20.
+      Return only the raw JSON object.
+    expected:
+      valid_json: true
+      json_has_keys:
+        - person
+
+  - id: json-array
+    category: structured-output
+    prompt: |
+      Return a JSON array with 3 objects, each having "id" and "value" keys.
+      Return only the raw JSON array.
+    expected:
+      valid_json: true
+
+  - id: json-types
+    category: structured-output
+    prompt: |
+      Return a JSON object with:
+      - "text" key with a string value "hello"
+      - "count" key with a number value 42
+      - "active" key with a boolean value true
+      Return only the raw JSON object.
+    expected:
+      valid_json: true
+      json_has_keys:
+        - text
+        - count
+        - active
+

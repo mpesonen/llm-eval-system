@@ -58,6 +58,8 @@ class LocalStore:
                 score=r["score"],
                 reasons=r["reasons"],
                 timestamp=datetime.fromisoformat(r["timestamp"]),
+                system_prompt_name=r.get("system_prompt_name"),
+                system_prompt_version=r.get("system_prompt_version"),
             )
             for r in data["results"]
         ]
@@ -68,4 +70,6 @@ class LocalStore:
             model=data["model"],
             timestamp=datetime.fromisoformat(data["timestamp"]),
             results=results,
+            system_prompt_name=data.get("system_prompt_name"),
+            system_prompt_version=data.get("system_prompt_version"),
         )

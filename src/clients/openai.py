@@ -13,9 +13,14 @@ class OpenAIClient:
     def generate(self, request: ModelRequest) -> ModelResponse:
         model = request.model or self.default_model
 
+        messages = []
+        if request.system_prompt:
+            messages.append({"role": "system", "content": request.system_prompt})
+        messages.append({"role": "user", "content": request.prompt})
+
         completion = self._client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": request.prompt}],
+            messages=messages,
         )
 
         return ModelResponse(

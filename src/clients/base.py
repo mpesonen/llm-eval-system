@@ -6,6 +6,7 @@ from typing import Protocol
 class ModelRequest:
     prompt: str
     model: str | None = None
+    system_prompt: str | None = None
 
 
 @dataclass

@@ -15,6 +15,8 @@ class EvalResult:
     score: float
     reasons: list[str]
     timestamp: datetime
+    system_prompt_name: str | None = None
+    system_prompt_version: str | None = None
 
 
 @dataclass
@@ -24,6 +26,8 @@ class EvalRun:
     model: str
     timestamp: datetime
     results: list[EvalResult]
+    system_prompt_name: str | None = None
+    system_prompt_version: str | None = None
 
 
 class ResultStore(Protocol):
