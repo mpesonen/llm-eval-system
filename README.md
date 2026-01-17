@@ -1,197 +1,152 @@
-# Comparative LLM Eval Runner & Visualizer
+# LLM Eval System
 
-## Purpose
+A lightweight system to **run, compare, and visualize evaluation suites for Large Language Models**.
 
-A lightweight system to **run, compare, and visualize evaluation suites for Large Language Models (LLMs)**.
+## Quick Start
 
-Focus areas:
-- regression detection
-- instruction & safety adherence
-- structured output reliability
-- model and prompt comparison over time
+```bash
+# Install dependencies
+uv sync
 
-This is **not a benchmark or leaderboard**.  
-It is a **CI-style quality gate for LLM systems**.
+# Run a single suite
+uv run python llm_eval.py --suite datasets/examples/basic.yaml
 
----
+# Run all suites
+uv run python llm_eval.py --all-suites
 
-## Core Requirements
+# Run with a specific model
+uv run python llm_eval.py --all-suites -m gpt-4o
 
-- Same eval suite runs unchanged across different models
-- Model and provider details fully abstracted
-- Deterministic-ish evaluation with variance tracking
-- Clear visualization of regressions
-- Easy to extend and reason about
-
----
-
-## Architecture (Logical)
-
-```text
-eval_datasets/
-      ↓
-eval_runner
-      ↓
-model_clients (abstracted)
-      ↓
-scorers / validators
-      ↓
-results_store
-      ↓
-visualizer (React)
+# Run with a system prompt
+uv run python llm_eval.py --suite datasets/examples/basic.yaml --system-prompt example
 ```
 
-Each layer is intentionally decoupled.
+## CLI Reference
 
----
+```bash
+python llm_eval.py [OPTIONS]
+
+Options:
+  -s, --suite PATH           Path to a YAML suite file
+  -a, --all-suites           Run all suites in datasets/examples/
+  --suites-dir PATH          Custom directory for suites (with --all-suites)
+  -m, --model MODEL          Model to evaluate (can be repeated, default: gpt-4o-mini)
+  --system-prompt NAME       System prompt name (e.g., 'example')
+  --system-prompt-version V  Specific version (e.g., 'v1'), defaults to latest
+  -l, --list                 List stored runs
+  -c, --compare BASE CURR    Compare two runs by ID
+```
+
+## Project Structure
+
+```
+├── llm_eval.py              # CLI entry point
+├── datasets/examples/       # Evaluation suite YAML files
+├── system_prompts/          # Versioned system prompts
+├── src/
+│   ├── api/                 # FastAPI server for web UI
+│   ├── clients/             # Model clients (OpenAI, etc.)
+│   ├── runner/              # Evaluation runner and comparison
+│   ├── scorers/             # Scoring strategies (rules, etc.)
+│   ├── store/               # Result storage (local JSON)
+│   ├── prompts/             # System prompt management
+│   └── utils/               # Utilities (git, etc.)
+├── web/                     # React frontend
+└── tests/                   # Test suite
+```
 
 ## Evaluation Suites
 
-An **evaluation suite** is a versioned set of test cases describing *expected behavior*.
+Suites are YAML files defining test cases:
 
-Each test case defines:
-- prompt (and optional context)
-- evaluation criteria
-- metadata (category, severity, tags)
+```yaml
+id: basic
+version: "1.0"
+title: Basic
+description: Quick-start suite with one case from each category
 
-Example categories:
-- instruction following
-- safety / refusal behavior
-- structured output validity
-- hallucination resistance
-- regression comparison
-
----
-
-## Model Abstraction
-
-All models are accessed through a provider-agnostic interface.
-
-```ts
-interface ModelClient {
-  generate(request: ModelRequest): Promise<ModelResponse>
-}
+cases:
+  - id: addition-simple
+    category: instruction-following
+    prompt: "What is 2 + 2? Answer with just the number."
+    expected:
+      contains: "4"
+      max_length: 10
 ```
 
-Concrete implementations:
+### Expected Conditions
 
-- AWS Bedrock (Claude, Titan, etc.)
-- OpenAI (optional)
-- Mock / replay client (testing)
+- `contains` / `not_contains` - String matching
+- `contains_any` / `contains_all` - Multiple strings
+- `max_length` / `min_length` - Response length
+- `valid_json` - JSON parsing
+- `json_has_keys` - Required JSON keys
 
-Eval definitions must not reference provider or model names directly.
+## System Prompts
 
-Model configuration is externalized and versioned.
+Store versioned system prompts in `system_prompts/`:
 
----
+```
+system_prompts/
+├── example-v1.txt
+├── assistant-v1.txt
+└── assistant-v2.txt
+```
 
-## Evaluation & Scoring
+Use with `--system-prompt example` (latest) or `--system-prompt-version v1`.
 
-Each test produces:
+## Web Dashboard
 
-- pass / fail
-- numeric score (0–1)
-- failure reasons
-- raw model output
+Start the API and frontend:
 
-Scoring strategies may include:
+```bash
+# Terminal 1: API server
+uv run uvicorn src.api.server:app --reload
 
-- rule-based checks (schema, length, keywords)
-- heuristic scoring (clarity, uncertainty)
-- LLM-as-judge (strict, constrained prompts)
-- baseline comparison (semantic delta)
+# Terminal 2: Frontend dev server
+cd web && npm run dev
+```
 
-Multiple runs per test are supported to detect instability.
+Open http://localhost:5173
 
----
+### Dashboard Features
 
-## Regression Detection
+- Suite cards with pass rate charts
+- Revision-based X-axis (r1, r2, r3...)
+- Regression/improvement markers:
+  - 🟢 Green: +5% or more improvement
+  - 🟠 Orange: -5% to -10% minor regression
+  - 🔴 Red: -10% or worse major regression
+- Tooltips with run metadata (model, commit, date)
+- Featured "basic" suite at full width
 
-Evaluation runs can be compared against:
+## Run Data
 
-- previous runs
-- known-good baselines
-- different models
+Runs are stored in `.eval_runs/` as JSON files with:
 
-Regressions are flagged when:
+- Revision number (global sequential)
+- Git commit hash (auto-detected)
+- Model and system prompt info
+- Pass/fail results with scores
 
-- pass → fail transitions occur
-- score deltas exceed thresholds
-- output variance increases
+## Environment
 
----
+Create `.env` with:
 
-## Observability & Tracing (LangSmith)
+```
+OPENAI_API_KEY=sk-...
+```
 
-LangSmith is used for:
+## Development
 
-- prompt and model tracing
-- run-level metadata
-- experiment comparison
-- debugging evaluation failures
+```bash
+# Run tests
+uv run pytest tests/ -v
 
-LangSmith is treated as optional infrastructure:
-
-- eval logic does not depend on it
-- system remains functional without it
-- tracing can be enabled or disabled via configuration
-
----
-
-## Frontend (React)
-
-A minimal visualizer focused on clarity:
-
-- list of evaluation runs
-- pass/fail summaries
-- metric trends
-- regression highlights
-- drill-down into failed cases
-
-UI prioritizes inspection over interaction.
-
----
-
-## AWS Alignment
-
-Typical deployment mapping:
-
-- Models: AWS Bedrock
-- Storage: S3 (datasets and results)
-- Metadata: DynamoDB
-- Backend: Lambda or ECS (eval runner)
-- Frontend: S3 + CloudFront
-- Monitoring: CloudWatch
-
-Cloud services are implementation details, not hard dependencies.
-
----
-
-## Non-Goals
-
-- Model ranking or public leaderboards
-- Objective "ground truth" scoring
-- Full MLOps platform
-- Autonomous optimization loops
-
----
-
-## Intended Use
-
-- Validate prompt or model changes
-- Detect safety or behavior regressions
-- CI integration for LLM-based systems
-- Internal quality dashboards
-
----
-
-## Status
-
-Demo / exploration project focused on:
-
-- LLMOps evaluation patterns
-- production-oriented system design
-- clarity over completeness
+# Build frontend
+cd web && npm run build
+```
 
 ## License
+
 MIT
