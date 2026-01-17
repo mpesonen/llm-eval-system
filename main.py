@@ -1,5 +1,6 @@
 import argparse
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -11,6 +12,17 @@ from src.scorers.rules import RuleScorer
 from src.store.local import LocalStore
 
 load_dotenv()
+
+
+def get_all_suite_paths(suites_dir: Path | None = None) -> list[Path]:
+    """Discover all YAML suite files in the given directory."""
+    if suites_dir is None:
+        suites_dir = Path(__file__).parent / "datasets" / "examples"
+    
+    if not suites_dir.exists():
+        return []
+    
+    return sorted(suites_dir.glob("*.yaml"))
 
 
 def print_run(run):
@@ -79,6 +91,14 @@ def main():
         "-s", "--suite", help="Path to YAML suite file"
     )
     parser.add_argument(
+        "-a", "--all-suites", action="store_true",
+        help="Run all suites in datasets/examples/"
+    )
+    parser.add_argument(
+        "--suites-dir",
+        help="Directory containing suite files (used with --all-suites)"
+    )
+    parser.add_argument(
         "-m",
         "--model",
         action="append",
@@ -126,25 +146,43 @@ def main():
         print_comparison(comparison, baseline, current)
         return
 
-    # Run eval suite
-    if not args.suite:
-        parser.error("--suite is required when running evaluations")
+    # Determine which suites to run
+    if args.all_suites:
+        suites_dir = Path(args.suites_dir) if args.suites_dir else None
+        suite_paths = get_all_suite_paths(suites_dir)
+        if not suite_paths:
+            print("No suite files found.", file=sys.stderr)
+            sys.exit(1)
+        print(f"Found {len(suite_paths)} suite(s) to run:")
+        for p in suite_paths:
+            print(f"  - {p.name}")
+        print()
+    elif args.suite:
+        suite_paths = [Path(args.suite)]
+    else:
+        parser.error("--suite or --all-suites is required when running evaluations")
 
     models = args.model if args.model else ["gpt-4o-mini"]
-    suite = load_suite(args.suite)
     scorer = RuleScorer()
 
-    for model in models:
-        client = OpenAIClient(model=model)
-        runner = Runner(client=client, scorer=scorer)
-        run = runner.run(
-            suite,
-            system_prompt_name=args.system_prompt,
-            system_prompt_version=args.system_prompt_version,
-        )
-        store.save_run(run)
-        print_run(run)
-        print("-" * 40)
+    for suite_path in suite_paths:
+        suite = load_suite(str(suite_path))
+        print(f"=== Suite: {suite.get('id', suite_path.stem)} ===")
+        print()
+
+        for model in models:
+            client = OpenAIClient(model=model)
+            runner = Runner(client=client, scorer=scorer)
+            run = runner.run(
+                suite,
+                system_prompt_name=args.system_prompt,
+                system_prompt_version=args.system_prompt_version,
+            )
+            store.save_run(run)
+            print_run(run)
+            print("-" * 40)
+
+        print()
 
 
 if __name__ == "__main__":

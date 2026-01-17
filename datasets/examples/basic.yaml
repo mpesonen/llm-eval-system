@@ -1,5 +1,6 @@
 id: basic
 version: "1.0"
+title: Basic
 description: Quick-start suite with one case from each major category
 
 cases:

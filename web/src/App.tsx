@@ -36,7 +36,7 @@ function App() {
       });
   }, []);
 
-  // Derive suites dynamically from run data
+  // Derive suites dynamically from run data, with "basic" first
   const { suites, runsBySuite } = useMemo(() => {
     const grouped: Record<string, Run[]> = {};
     runs.forEach((run) => {
@@ -45,9 +45,14 @@ function App() {
       }
       grouped[run.suite_id].push(run);
     });
-    const suiteIds = Object.keys(grouped).sort();
+    // Sort with "basic" first, then alphabetically
+    const suiteIds = Object.keys(grouped).sort((a, b) => {
+      if (a === "basic") return -1;
+      if (b === "basic") return 1;
+      return a.localeCompare(b);
+    });
     return {
-      suites: suiteIds.map((id) => ({ id })),
+      suites: suiteIds.map((id) => ({ id, featured: id === "basic" })),
       runsBySuite: grouped,
     };
   }, [runs]);
@@ -116,6 +121,7 @@ function App() {
             title={suiteMetadata[suite.id]?.title ?? suite.id}
             description={suiteMetadata[suite.id]?.description ?? undefined}
             runs={runsBySuite[suite.id] || []}
+            featured={suite.featured}
           />
         ))}
       </div>

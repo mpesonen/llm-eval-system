@@ -17,6 +17,7 @@ dist/
 # IDE
 .idea/
 *.swp
+.vscode/
 
 # Frontend
 web/node_modules/

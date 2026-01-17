@@ -17,9 +17,10 @@ interface SuiteCardProps {
   title: string;
   description?: string | null;
   runs: Run[];
+  featured?: boolean;
 }
 
-export function SuiteCard({ title, description, runs }: SuiteCardProps) {
+export function SuiteCard({ title, description, runs, featured }: SuiteCardProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(400);
 
@@ -76,7 +77,7 @@ export function SuiteCard({ title, description, runs }: SuiteCardProps) {
   }, [runs]);
 
   return (
-    <div className="suite-card">
+    <div className={`suite-card${featured ? " suite-card-featured" : ""}`}>
       <div className="suite-card-header">
         <h3>{title}</h3>
         {description && <p className="suite-card-description">{description}</p>}

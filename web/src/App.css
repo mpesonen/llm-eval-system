@@ -52,6 +52,11 @@ h1 {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* Featured card spans full width on desktop */
+  .suite-card-featured {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Suite Card */
