@@ -16,7 +16,6 @@ class EvalResult:
     reasons: list[str]
     timestamp: datetime
     system_prompt_name: str | None = None
-    system_prompt_version: str | None = None
 
 
 @dataclass
@@ -27,7 +26,6 @@ class EvalRun:
     timestamp: datetime
     results: list[EvalResult]
     system_prompt_name: str | None = None
-    system_prompt_version: str | None = None
     revision: int | None = None  # Global sequential revision number
     git_commit_hash: str | None = None  # Auto-detected git commit
 

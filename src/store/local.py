@@ -10,7 +10,7 @@ class LocalStore:
     def __init__(self, path: str = ".eval_runs"):
         self.path = Path(path)
 
-    def _get_next_revision(self) -> int:
+    def get_next_revision(self) -> int:
         """Get the next global revision number."""
         runs = self.list_runs()
         if not runs:
@@ -27,7 +27,7 @@ class LocalStore:
 
         # Assign revision number if not already set
         if run.revision is None:
-            run.revision = self._get_next_revision()
+            run.revision = self.get_next_revision()
 
         data = asdict(run)
         data["timestamp"] = run.timestamp.isoformat()
@@ -75,7 +75,6 @@ class LocalStore:
                 reasons=r["reasons"],
                 timestamp=datetime.fromisoformat(r["timestamp"]),
                 system_prompt_name=r.get("system_prompt_name"),
-                system_prompt_version=r.get("system_prompt_version"),
             )
             for r in data["results"]
         ]
@@ -87,7 +86,6 @@ class LocalStore:
             timestamp=datetime.fromisoformat(data["timestamp"]),
             results=results,
             system_prompt_name=data.get("system_prompt_name"),
-            system_prompt_version=data.get("system_prompt_version"),
             revision=data.get("revision"),
             git_commit_hash=data.get("git_commit_hash"),
         )

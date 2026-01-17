@@ -24,9 +24,9 @@ cases:
     expected:
       contains: "4"
 
-  - id: max-length
+  - id: exact-word-count
     category: instruction-following
     prompt: "Explain quantum physics in exactly 20 words."
     expected:
-      max_length: 150
+      exact_words: 20
 

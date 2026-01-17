@@ -11,7 +11,6 @@ interface Run {
   passed: number;
   total: number;
   system_prompt_name?: string | null;
-  system_prompt_version?: string | null;
   revision?: number | null;
   git_commit_hash?: string | null;
 }

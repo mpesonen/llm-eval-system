@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.prompts import list_prompts, list_versions
+from src.prompts import list_prompts
 from src.runner.compare import compare_runs
 from src.runner.loader import load_suite
 from src.store.local import LocalStore
@@ -33,7 +33,6 @@ def list_runs():
             "passed": sum(1 for r in run.results if r.passed),
             "total": len(run.results),
             "system_prompt_name": run.system_prompt_name,
-            "system_prompt_version": run.system_prompt_version,
             "revision": run.revision,
             "git_commit_hash": run.git_commit_hash,
         }
@@ -53,7 +52,6 @@ def get_run(run_id: str):
         "model": run.model,
         "timestamp": run.timestamp.isoformat(),
         "system_prompt_name": run.system_prompt_name,
-        "system_prompt_version": run.system_prompt_version,
         "revision": run.revision,
         "git_commit_hash": run.git_commit_hash,
         "results": [
@@ -66,7 +64,6 @@ def get_run(run_id: str):
                 "score": r.score,
                 "reasons": r.reasons,
                 "system_prompt_name": r.system_prompt_name,
-                "system_prompt_version": r.system_prompt_version,
             }
             for r in run.results
         ],
@@ -111,18 +108,8 @@ def compare(baseline: str, current: str):
 
 @app.get("/api/system-prompts")
 def get_system_prompts():
-    """List all available system prompts and their versions."""
-    prompts = list_prompts()
-    result = {}
-    
-    for prompt_name in prompts:
-        versions = list_versions(prompt_name)
-        result[prompt_name] = {
-            "versions": versions,
-            "latest": versions[-1] if versions else None,
-        }
-    
-    return result
+    """List all available system prompts."""
+    return list_prompts()
 
 
 def _get_suites_dir() -> Path:

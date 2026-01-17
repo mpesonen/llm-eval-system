@@ -8,7 +8,6 @@ from src.clients import get_client
 from src.runner.compare import compare_runs
 from src.runner.loader import load_suite
 from src.runner.runner import Runner
-from src.scorers.rules import RuleScorer
 from src.store.local import LocalStore
 
 load_dotenv()
@@ -29,8 +28,7 @@ def print_run(run):
     print(f"Suite: {run.suite_id}")
     print(f"Model: {run.model}")
     if run.system_prompt_name:
-        version_str = f" ({run.system_prompt_version})" if run.system_prompt_version else ""
-        print(f"System Prompt: {run.system_prompt_name}{version_str}")
+        print(f"System Prompt: {run.system_prompt_name}")
     print(f"Results: {len(run.results)} case(s)")
     print()
 
@@ -114,11 +112,7 @@ def main():
     )
     parser.add_argument(
         "--system-prompt",
-        help="System prompt name to use (e.g., 'example')"
-    )
-    parser.add_argument(
-        "--system-prompt-version",
-        help="System prompt version (e.g., 'v1'). Defaults to latest if not specified."
+        help="System prompt name to use (e.g., 'assistant-prompt-v2')"
     )
     args = parser.parse_args()
 
@@ -163,21 +157,24 @@ def main():
         parser.error("--suite or --all-suites is required when running evaluations")
 
     models = args.model if args.model else ["gpt-4o-mini"]
-    scorer = RuleScorer()
+
+    # Calculate revision once for entire batch - all runs share the same revision
+    batch_revision = store.get_next_revision()
 
     for suite_path in suite_paths:
         suite = load_suite(str(suite_path))
-        print(f"=== Suite: {suite.get('id', suite_path.stem)} ===")
+        scorer_type = suite.get("scorer", "rules")
+        print(f"=== Suite: {suite.get('id', suite_path.stem)} (scorer: {scorer_type}) ===")
         print()
 
         for model in models:
             client = get_client(model)
-            runner = Runner(client=client, scorer=scorer)
+            runner = Runner(client=client)  # Scorer auto-selected from suite config
             run = runner.run(
                 suite,
                 system_prompt_name=args.system_prompt,
-                system_prompt_version=args.system_prompt_version,
             )
+            run.revision = batch_revision  # Assign shared revision
             store.save_run(run)
             print_run(run)
             print("-" * 40)

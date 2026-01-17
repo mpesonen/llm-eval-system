@@ -9,7 +9,6 @@ interface Run {
   passed: number;
   total: number;
   system_prompt_name?: string | null;
-  system_prompt_version?: string | null;
   revision?: number | null;
   git_commit_hash?: string | null;
 }
@@ -100,7 +99,6 @@ export function SuiteCard({ title, description, runs, featured }: SuiteCardProps
         passRate,
         model: run.model,
         systemPromptName: run.system_prompt_name,
-        systemPromptVersion: run.system_prompt_version,
         gitCommitHash: run.git_commit_hash,
         changeFromPrevious,
         status: getStatus(changeFromPrevious),

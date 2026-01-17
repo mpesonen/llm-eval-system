@@ -80,6 +80,95 @@ class TestRuleScorerMaxLength:
         assert result.passed is True
 
 
+class TestRuleScorerMinLength:
+    def test_passes_when_over_limit(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "This is long enough", {"min_length": 10})
+
+        assert result.passed is True
+
+    def test_fails_when_under_limit(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "short", {"min_length": 10})
+
+        assert result.passed is False
+        assert "length" in result.reasons[0].lower()
+
+    def test_passes_at_exact_limit(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "1234567890", {"min_length": 10})
+
+        assert result.passed is True
+
+
+class TestRuleScorerWordCount:
+    def test_max_words_passes_when_under(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two three", {"max_words": 5})
+
+        assert result.passed is True
+
+    def test_max_words_fails_when_over(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two three four five six", {"max_words": 5})
+
+        assert result.passed is False
+        assert "word count" in result.reasons[0].lower()
+
+    def test_min_words_passes_when_over(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two three four five", {"min_words": 3})
+
+        assert result.passed is True
+
+    def test_min_words_fails_when_under(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two", {"min_words": 5})
+
+        assert result.passed is False
+        assert "word count" in result.reasons[0].lower()
+
+    def test_exact_words_passes_when_exact(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two three four five", {"exact_words": 5})
+
+        assert result.passed is True
+
+    def test_exact_words_fails_when_too_few(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two three", {"exact_words": 5})
+
+        assert result.passed is False
+        assert "word count" in result.reasons[0].lower()
+
+    def test_exact_words_fails_when_too_many(self):
+        from src.scorers.rules import RuleScorer
+
+        scorer = RuleScorer()
+        result = scorer.score("", "one two three four five six seven", {"exact_words": 5})
+
+        assert result.passed is False
+        assert "word count" in result.reasons[0].lower()
+
+
 class TestRuleScorerValidJson:
     def test_passes_for_valid_json(self):
         from src.scorers.rules import RuleScorer

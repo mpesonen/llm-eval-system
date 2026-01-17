@@ -15,7 +15,6 @@ export interface ChartDataPoint {
   passRate: number; // 0-100
   model: string;
   systemPromptName?: string | null;
-  systemPromptVersion?: string | null;
   gitCommitHash?: string | null;
   changeFromPrevious?: number | null; // percentage change from previous run
   status: DataPointStatus;
@@ -247,7 +246,6 @@ export function SuiteChart({
               <div>
                 <span style={{ color: "#9ca3af" }}>System Prompt: </span>
                 {tooltipData.systemPromptName}
-                {tooltipData.systemPromptVersion && ` (${tooltipData.systemPromptVersion})`}
               </div>
             )}
             <div>

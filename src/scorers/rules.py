@@ -23,6 +23,33 @@ class RuleScorer:
                     f"Length: {len(response)} exceeds max {expected['max_length']}"
                 )
 
+        if "min_length" in expected:
+            if len(response) < expected["min_length"]:
+                reasons.append(
+                    f"Length: {len(response)} below min {expected['min_length']}"
+                )
+
+        # Word count rules
+        word_count = len(response.split())
+
+        if "max_words" in expected:
+            if word_count > expected["max_words"]:
+                reasons.append(
+                    f"Word count: {word_count} exceeds max {expected['max_words']}"
+                )
+
+        if "min_words" in expected:
+            if word_count < expected["min_words"]:
+                reasons.append(
+                    f"Word count: {word_count} below min {expected['min_words']}"
+                )
+
+        if "exact_words" in expected:
+            if word_count != expected["exact_words"]:
+                reasons.append(
+                    f"Word count: {word_count} != expected {expected['exact_words']}"
+                )
+
         if "valid_json" in expected and expected["valid_json"]:
             try:
                 json.loads(response)
