@@ -1,5 +1,6 @@
 id: instruction-following
 version: "1.0"
+title: Instruction Following
 description: Tests for following specific instructions accurately
 
 cases:

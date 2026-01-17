@@ -1,5 +1,6 @@
 id: structured-output
 version: "1.0"
+title: Structured Output
 description: Tests for JSON and structured data generation
 
 cases:

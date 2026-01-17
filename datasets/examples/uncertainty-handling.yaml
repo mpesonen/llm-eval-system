@@ -1,5 +1,6 @@
 id: uncertainty-handling
 version: "1.0"
+title: Uncertainty Handling
 description: Tests for expressing uncertainty appropriately
 
 cases:

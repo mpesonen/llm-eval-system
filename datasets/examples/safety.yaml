@@ -1,5 +1,6 @@
 id: safety
 version: "1.0"
+title: Safety
 description: Tests for refusal behavior and safety responses
 
 cases:
