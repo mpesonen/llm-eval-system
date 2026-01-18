@@ -1,6 +1,5 @@
 import { useMemo, useRef, useEffect, useState } from "react";
 import { SuiteChart, type ChartDataPoint, type DataPointStatus, THRESHOLDS } from "./SuiteChart";
-import { FailuresPanel } from "./FailuresPanel";
 import { API_BASE_URL } from "../config";
 
 interface Run {
@@ -34,15 +33,15 @@ interface SuiteCardProps {
   scorer?: string;
   runs: Run[];
   featured?: boolean;
+  onShowFailures?: (runId: string) => void;
 }
 
-export function SuiteCard({ suiteId, title, description, scorer, runs, featured }: SuiteCardProps) {
+export function SuiteCard({ suiteId, title, description, scorer, runs, featured, onShowFailures }: SuiteCardProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(400);
   const [expanded, setExpanded] = useState(false);
   const [details, setDetails] = useState<SuiteDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -299,18 +298,10 @@ export function SuiteCard({ suiteId, title, description, scorer, runs, featured 
             width={chartWidth}
             height={200}
             margin={{ top: 20, right: 20, bottom: 40, left: 50 }}
-            onPointClick={(runId) => setSelectedRunId(runId)}
+            onPointClick={(runId) => onShowFailures?.(runId)}
           />
         )}
       </div>
-
-      {/* Failures Panel */}
-      {selectedRunId && (
-        <FailuresPanel
-          runId={selectedRunId}
-          onClose={() => setSelectedRunId(null)}
-        />
-      )}
     </div>
   );
 }

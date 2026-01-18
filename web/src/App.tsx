@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import "./App.css";
 import { SuiteCard } from "./components/SuiteCard";
 import { RunDetail } from "./components/RunDetail";
+import { FailuresPanel } from "./components/FailuresPanel";
 import { API_BASE_URL } from "./config";
 
 interface Run {
@@ -18,6 +19,7 @@ interface Run {
 
 function App() {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [failuresPanelRunId, setFailuresPanelRunId] = useState<string | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,9 +132,17 @@ function App() {
             scorer={suiteMetadata[suite.id]?.scorer}
             runs={runsBySuite[suite.id] || []}
             featured={suite.featured}
+            onShowFailures={setFailuresPanelRunId}
           />
         ))}
       </div>
+
+      {failuresPanelRunId && (
+        <FailuresPanel
+          runId={failuresPanelRunId}
+          onClose={() => setFailuresPanelRunId(null)}
+        />
+      )}
     </div>
   );
 }
