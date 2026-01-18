@@ -12,7 +12,10 @@ app = FastAPI(title="LLM Eval API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://llm-eval-dashboard.s3-website.eu-north-1.amazonaws.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
