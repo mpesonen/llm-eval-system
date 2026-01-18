@@ -24,6 +24,21 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Parallax effect for background
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const parallaxSpeed = 0.1; // Background moves at 10% of scroll speed
+      document.documentElement.style.setProperty(
+        '--parallax-offset',
+        `${scrollY * parallaxSpeed}px`
+      );
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/runs`)
       .then((res) => {
