@@ -40,14 +40,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6bc0a130-8852-4ebd-a008-6cfcc8d032b9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:43',message:'Fetching runs',data:{apiBaseUrl:API_BASE_URL,fullUrl:`${API_BASE_URL}/api/runs`,origin:window.location.origin},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B'})}).catch(()=>{});
-    // #endregion
     fetch(`${API_BASE_URL}/api/runs`)
       .then((res) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/6bc0a130-8852-4ebd-a008-6cfcc8d032b9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:47',message:'Fetch response received',data:{ok:res.ok,status:res.status,statusText:res.statusText},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,C,D'})}).catch(()=>{});
-        // #endregion
         if (!res.ok) throw new Error("Failed to fetch runs");
         return res.json();
       })
@@ -56,9 +50,6 @@ function App() {
         setLoading(false);
       })
       .catch((err) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/6bc0a130-8852-4ebd-a008-6cfcc8d032b9',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.tsx:55',message:'Fetch error caught',data:{errorMessage:err.message,errorName:err.name,errorStack:err.stack?.substring(0,500)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,B,C,D'})}).catch(()=>{});
-        // #endregion
         setError(err.message);
         setLoading(false);
       });
@@ -134,14 +125,6 @@ function App() {
     return (
       <div className="app">
         <div className="error">Error: {error}</div>
-        {/* #region agent log */}
-        <div style={{marginTop:'1rem',padding:'1rem',background:'#1e1e1e',borderRadius:'8px',fontFamily:'monospace',fontSize:'12px',textAlign:'left'}}>
-          <div style={{color:'#9cdcfe'}}>Debug Info:</div>
-          <div style={{color:'#ce9178'}}>API_BASE_URL: {API_BASE_URL}</div>
-          <div style={{color:'#ce9178'}}>Full URL: {API_BASE_URL}/api/runs</div>
-          <div style={{color:'#ce9178'}}>Frontend Origin: {window.location.origin}</div>
-        </div>
-        {/* #endregion */}
       </div>
     );
 
