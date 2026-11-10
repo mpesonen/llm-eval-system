@@ -2,6 +2,8 @@
 
 A lightweight system to **run, compare, and visualize evaluation suites for Large Language Models**.
 
+![LLM Eval Dashboard](docs/dashboard.png)
+
 ## Quick Start
 
 ```bash
